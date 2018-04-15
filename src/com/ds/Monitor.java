@@ -22,6 +22,8 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import javax.swing.UIManager;
 import java.awt.Color;
+import java.awt.BorderLayout;
+import javax.swing.border.LineBorder;
 
 public class Monitor extends UnicastRemoteObject implements Runnable, ServerListener {
 
@@ -47,15 +49,16 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 	private static JLabel lblSensorCountval = new JLabel(" - ");
 	private final JLabel lblNewLabel_1 = new JLabel("Connected Monitors : ");
 	private static JLabel lblMonitorCountVal = new JLabel(" - ");
+	private final JPanel infoPanel = new JPanel();
 
 	public Monitor() throws RemoteException {
-		frame.setSize(800, 500);
+		frame.setSize(884, 500);
 		frame.setResizable(false);
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 106, 567, 0, 0 };
-		gridBagLayout.rowHeights = new int[] { 50, 193, 0, 0, 0 };
-		gridBagLayout.columnWeights = new double[] { 0.0, 1.0, 1.0, Double.MIN_VALUE };
-		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE };
+		gridBagLayout.columnWidths = new int[] { 183, 567, 0, 0 };
+		gridBagLayout.rowHeights = new int[] { 50, 193, 0, 0 };
+		gridBagLayout.columnWeights = new double[] { 1.0, 1.0, 1.0, Double.MIN_VALUE };
+		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, Double.MIN_VALUE };
 		frame.getContentPane().setLayout(gridBagLayout);
 
 		JLabel lblMonitorId = new JLabel("Monitor ID :");
@@ -84,7 +87,7 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 		gbc_panel.anchor = GridBagConstraints.EAST;
 		gbc_panel.fill = GridBagConstraints.VERTICAL;
 		gbc_panel.gridwidth = 3;
-		gbc_panel.insets = new Insets(0, 0, 5, 5);
+		gbc_panel.insets = new Insets(0, 0, 5, 0);
 		gbc_panel.gridx = 0;
 		gbc_panel.gridy = 1;
 		panel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "[sensors]", TitledBorder.LEADING,
@@ -135,21 +138,30 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 		gbc_lblMonitorCountVal.gridx = 3;
 		gbc_lblMonitorCountVal.gridy = 1;
 		panel.add(lblMonitorCountVal, gbc_lblMonitorCountVal);
+		
+		GridBagConstraints gbc_infoPanel = new GridBagConstraints();
+		gbc_infoPanel.insets = new Insets(0, 0, 0, 5);
+		gbc_infoPanel.fill = GridBagConstraints.BOTH;
+		gbc_infoPanel.gridx = 0;
+		gbc_infoPanel.gridy = 2;
+		infoPanel.setBorder(new TitledBorder(null, "[selected sensor]", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		frame.getContentPane().add(infoPanel, gbc_infoPanel);
+		infoPanel.setLayout(new BorderLayout(0, 0));
 
 		GridBagConstraints gbc_panel_1 = new GridBagConstraints();
+		gbc_panel_1.anchor = GridBagConstraints.EAST;
 		gbc_panel_1.fill = GridBagConstraints.VERTICAL;
-		gbc_panel_1.gridwidth = 3;
-		gbc_panel_1.insets = new Insets(0, 0, 5, 5);
-		gbc_panel_1.gridx = 0;
+		gbc_panel_1.gridwidth = 2;
+		gbc_panel_1.gridx = 1;
 		gbc_panel_1.gridy = 2;
 		panel_1.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "[info]", TitledBorder.LEADING,
 				TitledBorder.TOP, null, new Color(0, 0, 0)));
 		frame.getContentPane().add(panel_1, gbc_panel_1);
 		GridBagLayout gbl_panel_1 = new GridBagLayout();
-		gbl_panel_1.columnWidths = new int[] { 634, 0 };
-		gbl_panel_1.rowHeights = new int[] { 155, 0 };
-		gbl_panel_1.columnWeights = new double[] { 0.0, Double.MIN_VALUE };
-		gbl_panel_1.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
+		gbl_panel_1.columnWidths = new int[]{634, 0};
+		gbl_panel_1.rowHeights = new int[]{155, 0};
+		gbl_panel_1.columnWeights = new double[]{0.0, Double.MIN_VALUE};
+		gbl_panel_1.rowWeights = new double[]{0.0, Double.MIN_VALUE};
 		panel_1.setLayout(gbl_panel_1);
 		GridBagConstraints gbc_scrollPane_1 = new GridBagConstraints();
 		gbc_scrollPane_1.fill = GridBagConstraints.BOTH;
@@ -198,14 +210,14 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 	@Override
 	public void showWarningMessage(String message) throws RemoteException {
 
-		messageArea.append("[WARNING] : " + message);
+		messageArea.append("[WARNING] : " + message + "\n");
 
 	}
 
 	@Override
 	public void showMessage(String message) throws RemoteException {
 
-		messageArea.append("[SERVERMESSAGE] : " + message);
+		messageArea.append("[SERVERMESSAGE] : " + message + "\n");
 
 	}
 
@@ -218,7 +230,7 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 	@Override
 	public void noResponse(String sensorUID) throws RemoteException {
 
-		messageArea.append("[NORESPONSE] : sensor - " + sensorUID + " has not responded");
+		messageArea.append("[NORESPONSE] : sensor - " + sensorUID + " has not responded \n");
 
 	}
 
@@ -242,7 +254,6 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 			monitor = new Monitor();
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			frame.setVisible(true);
-			monitor.update();
 			String registration = "//localhost/SensorServer";
 			Remote remoteService = Naming.lookup(registration);
 			server = (IServer) remoteService;

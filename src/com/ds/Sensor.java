@@ -59,7 +59,8 @@ public class Sensor {
 	private final JButton btnTestBattery = new JButton("TEST");
 
 	/**
-	 * Constructs the client by laying out the GUI. This was made using Eclipse WindowBuilder
+	 * Constructs the client by laying out the GUI. This was made using Eclipse
+	 * WindowBuilder
 	 */
 	public Sensor() {
 		frame.getContentPane().setLayout(new GridLayout(0, 1));
@@ -233,15 +234,14 @@ public class Sensor {
 			} else if (line.startsWith("GETPASSWORD")) {
 				out.println(getPassword());
 			} else if (line.startsWith(sensorUID)) {
-				if (line.contains(">>")) {
-					System.out.println(line);
-					String sensorRequest[] = line.split(">>");
-				
+
+				System.out.println(line);
+
 				out.println("QUICKUPDATE" + sensorUID + ">>" + temperature + ">>" + smoke + ">>" + battery + ">>" + co2
-						+ ">>" + LocalDateTime.now().toString().substring(0, 19) + ">>" + sensorRequest[1]);
+						+ ">>" + LocalDateTime.now().toString().substring(0, 19) + ">>");
 				out.flush();
 				System.out.println("QUICKUPDATE data sent");
-				}
+
 			} else if (line.startsWith("DATAUPDATE")) {
 
 				// send hour request data

@@ -15,14 +15,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Server extends UnicastRemoteObject implements Runnable, IServer {
 
 	private static final int PORT = 9001;
 	private static int currentMonitorUID = 0;
+	private static AtomicBoolean sensorWaitLock = new AtomicBoolean(true); 
+	private static AtomicBoolean quickUpdateWaitLock = new AtomicBoolean(true);
 	// UPDATETIMEOUT : Interval in seconds before server requests updates from the
 	// sensors, set to 10 seconds
-	private static final int UPDATETIMEOUT = 10; // (example: 1 hour is 60 * 60)
+	private static final int UPDATETIMEOUT = 15; // time between updates in seconds(example: 1 hour is 60 * 60)
+	private static final int RESPONSEWAITTIME = 10; // time in seconds to wait for response from sensor
 	private static final String PASSWORD = "1234";
 	private static ArrayList<ServerListener> monitors1 = new ArrayList<ServerListener>();
 	private static HashMap<String, ServerListener> monitors = new HashMap<>();
@@ -52,14 +56,18 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 	@Override
 	public int getMonitorCount() throws java.rmi.RemoteException {
 		System.out.println("Monitor count requested - " + monitors.size());
-		return monitors.size();
+		synchronized (monitors) {
+			return monitors.size();
+		}
 	}
 
 	// getter for number of sensors connected to the server
 	@Override
 	public int getSensorCount() throws RemoteException {
 		System.out.println("sensor count requested - " + sensors.size());
-		return sensors.size();
+		synchronized (sensors) {
+			return sensors.size();
+		}
 	}
 
 	// method to add a new monitor to the list of connected monitors
@@ -85,16 +93,47 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 	@Override
 	public void getSensorData(String sensorUID, String monitorUID) {
 
-		for (PrintWriter writer : writers) {
-			writer.println(sensorUID + ">>" + monitorUID);
-			System.out.println("sent sensor specific request to -> (" + sensorUID + ")");
-		}
+		Thread quickUpdateThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+
+				ServerListener mon = monitors.get(monitorUID);
+				
+				for (PrintWriter writer : writers) {
+					quickUpdateWaitLock.set(true);
+					writer.println(sensorUID);
+					System.out.println("sent sensor specific request to -> (" + sensorUID + ")");
+					Integer i = 0;
+					try {
+						System.out.println("waiting for quickupdate reply");
+						while (i++ < RESPONSEWAITTIME) {
+							System.out.print(".");
+							Thread.sleep(1000);
+							if (!quickUpdateWaitLock.get()) {
+								break;
+							}
+						}
+						if (quickUpdateWaitLock.get()) {
+							System.out.println("no response from sensor");
+							mon.showMessage("quickupdate failed");
+
+						} else {
+							System.out.println("sensor responded");
+						}
+					} catch (InterruptedException | RemoteException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		
 	}
 
 	@Override
 	public void run() {
 		// time.scheduleAtFixedRate(update, 5000, 1000 * 60 * 60);
-		timer.scheduleAtFixedRate(task, 5000, 1000 * UPDATETIMEOUT); // 10 Second update request interval (testing)
+		timer.scheduleAtFixedRate(task, 1000, 1000 * UPDATETIMEOUT); // x Second update request interval (testing)
+		System.out.println("server running...");
 	}
 
 	Timer timer = new Timer();
@@ -109,19 +148,40 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 			if (sensors.size() > 0) {
 				for (PrintWriter writer : writers) {
 
+					sensorWaitLock.set(true);
 					writer.println("DATAUPDATE");
-					System.out.println("request send");
+					System.out.println("DATAUPDATE request sent");
+					Integer i = 0;
+					try {
+						System.out.println("waiting for reply");
+						while (i++ < RESPONSEWAITTIME) {
+							System.out.print(".");
+							Thread.sleep(1000);
+							if (!sensorWaitLock.get()) {
+								break;
+							}
+						}
+						if (sensorWaitLock.get()) {
+							System.out.println("no response from sensor");
+
+						} else {
+							System.out.println("sensor resopnded");
+						}
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 
 				}
 			}
+
 			// check if all sensors have replied. If not, send a message to monitor
 			for (ISensorTracker sensor : sensors) {
 
+				System.out.println(sensor.getSensor() + " response : " + sensor.isResponseReceived());
 				if (!sensor.isResponseReceived()) {
 					System.out.println("no response from :" + sensor.getSensor());
-					
-					for (ServerListener monitor : monitors.values()) {
 
+					for (ServerListener monitor : monitors.values()) {
 						try {
 							monitor.noResponse(sensor.getSensor());
 						} catch (RemoteException ex) {
@@ -176,7 +236,7 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 			ServerSocket listener = new ServerSocket(PORT);
 			Thread serverThread = new Thread(server);
 			serverThread.start();
-			
+
 			try {
 				while (true) {
 					new Server.Handler(listener.accept()).start();
@@ -263,7 +323,7 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 						if (sensors.isEmpty()) {
 
 							ISensorTracker newSensor = new SensorTracker(sensorUID);
-							newSensor.setResponseReceived(false); // TODO : check if necessary
+							newSensor.setResponseReceived(false);
 							sensors.add(newSensor);
 							System.out.println("sensor added");
 
@@ -320,7 +380,7 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 						return;
 					} else if (input.startsWith("HourlyResponse")) {
 						// receive hourly updates
-						System.out.println("HourlyResponse received ");
+						System.out.println(" HourlyResponse received ");
 						if (input.contains(">>")) {
 							input = input.substring(15);
 							System.out.println(input);
@@ -351,10 +411,10 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 									}
 								}
 							}
-							// System.out.println(checkHourupdate);
+							sensorWaitLock.set(false);
 						}
 					} else if (input.startsWith("QUICKUPDATE")) {
-						// to catch forced updates
+						// to catch specific updates
 						System.out.println("QUICKUPDATE received ");
 						if (input.contains(">>")) {
 							input = input.substring(11);
@@ -378,6 +438,7 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 
 							}
 						}
+						quickUpdateWaitLock.set(false);
 					}
 
 				}
