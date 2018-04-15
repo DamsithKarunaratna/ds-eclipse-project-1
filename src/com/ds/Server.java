@@ -68,7 +68,7 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 		currentMonitorUID++;
 		String monitorIdentifier = "monitor" + currentMonitorUID;
 		monitors.put(monitorIdentifier, listener);
-		System.out.println("adding listener -" + listener);
+		System.out.println("adding listener -" + currentMonitorUID + " " + listener);
 		listenerBroadcast();
 		return monitorIdentifier;
 	}
@@ -171,7 +171,7 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 		try {
 			Server server = new Server();
 			String registry = "localhost";
-			String registration = "rmi://" + registry + "/TemperatureServer";
+			String registration = "rmi://" + registry + "/SensorServer";
 			Naming.rebind(registration, server);
 			ServerSocket listener = new ServerSocket(PORT);
 			Thread serverThread = new Thread(server);

@@ -18,6 +18,10 @@ import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
+import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
+import javax.swing.UIManager;
+import java.awt.Color;
 
 public class Monitor extends UnicastRemoteObject implements Runnable, ServerListener {
 
@@ -31,59 +35,129 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 	private static IServer server;
 	private static Monitor monitor;
 
-//	private static DefaultTableModel model = (DefaultTableModel) sensorTable.getModel();
+	// private static DefaultTableModel model = (DefaultTableModel)
+	// sensorTable.getModel();
 	static String columnNames[] = new String[] { "sensorUID", "Temperature", "Smoke_Level", "Battery", "Humidity",
 			"Last Update", "Status" };
 	private static DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 	private final JScrollPane scrollPane = new JScrollPane();
 	private final JScrollPane scrollPane_1 = new JScrollPane();
+	private static JLabel lblMonitorIdValue = new JLabel("-");
+	private final JPanel panel = new JPanel();
+	private final JPanel panel_1 = new JPanel();
+	private static JLabel lblSensorCount = new JLabel("Sensor Count : ");
+	private static JLabel lblSensorCountval = new JLabel(" - ");
+	private final JLabel lblNewLabel_1 = new JLabel("Connected Monitors : ");
+	private static JLabel lblMonitorCountVal = new JLabel(" - ");
 
 	public Monitor() throws RemoteException {
 		frame.setSize(700, 500);
 		frame.setResizable(false);
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 0, 15, 134, 567, 0, 0, 0 };
-		gridBagLayout.rowHeights = new int[] { 50, 0, 0, 0, 0, 0 };
-		gridBagLayout.columnWeights = new double[] { 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, Double.MIN_VALUE };
-		gridBagLayout.rowWeights = new double[] { 0.0, 1.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
+		gridBagLayout.columnWidths = new int[] { 106, 567, 0, 0 };
+		gridBagLayout.rowHeights = new int[] { 50, 193, 0, 0, 0 };
+		gridBagLayout.columnWeights = new double[] { 0.0, 1.0, 1.0, Double.MIN_VALUE };
+		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE };
 		frame.getContentPane().setLayout(gridBagLayout);
 
 		JLabel lblMonitorId = new JLabel("Monitor ID :");
 		GridBagConstraints gbc_lblMonitorId = new GridBagConstraints();
 		gbc_lblMonitorId.anchor = GridBagConstraints.EAST;
 		gbc_lblMonitorId.insets = new Insets(0, 0, 5, 5);
-		gbc_lblMonitorId.gridx = 2;
+		gbc_lblMonitorId.gridx = 0;
 		gbc_lblMonitorId.gridy = 0;
 		frame.getContentPane().add(lblMonitorId, gbc_lblMonitorId);
 
+		GridBagConstraints gbc_lblMonitorIdValue = new GridBagConstraints();
+		gbc_lblMonitorIdValue.anchor = GridBagConstraints.WEST;
+		gbc_lblMonitorIdValue.insets = new Insets(0, 0, 5, 5);
+		gbc_lblMonitorIdValue.gridx = 1;
+		gbc_lblMonitorIdValue.gridy = 0;
+		frame.getContentPane().add(lblMonitorIdValue, gbc_lblMonitorIdValue);
+
 		JLabel monitorIdVal = new JLabel("");
 		GridBagConstraints gbc_monitorIdVal = new GridBagConstraints();
-		gbc_monitorIdVal.insets = new Insets(0, 0, 5, 5);
-		gbc_monitorIdVal.gridx = 4;
+		gbc_monitorIdVal.insets = new Insets(0, 0, 5, 0);
+		gbc_monitorIdVal.gridx = 2;
 		gbc_monitorIdVal.gridy = 0;
 		frame.getContentPane().add(monitorIdVal, gbc_monitorIdVal);
-		
-		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
-		gbc_scrollPane.gridwidth = 2;
-		gbc_scrollPane.insets = new Insets(0, 0, 5, 5);
-		gbc_scrollPane.fill = GridBagConstraints.BOTH;
-		gbc_scrollPane.gridx = 2;
-		gbc_scrollPane.gridy = 1;
-		frame.getContentPane().add(scrollPane, gbc_scrollPane);
+
+		GridBagConstraints gbc_panel = new GridBagConstraints();
+		gbc_panel.anchor = GridBagConstraints.EAST;
+		gbc_panel.fill = GridBagConstraints.VERTICAL;
+		gbc_panel.gridwidth = 3;
+		gbc_panel.insets = new Insets(0, 0, 5, 5);
+		gbc_panel.gridx = 0;
+		gbc_panel.gridy = 1;
+		panel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "[sensors]", TitledBorder.LEADING,
+				TitledBorder.TOP, null, new Color(0, 0, 0)));
+		frame.getContentPane().add(panel, gbc_panel);
+		GridBagLayout gbl_panel = new GridBagLayout();
+		gbl_panel.columnWidths = new int[] { 50, 66, 150, 639, 0 };
+		gbl_panel.rowHeights = new int[] { 154, 16, 0 };
+		gbl_panel.columnWeights = new double[] { 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panel.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
+		panel.setLayout(gbl_panel);
 
 		sensorTable = new JTable(model);
+		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
+		gbc_scrollPane.gridwidth = 6;
+		gbc_scrollPane.fill = GridBagConstraints.BOTH;
+		gbc_scrollPane.insets = new Insets(0, 0, 5, 0);
+		gbc_scrollPane.gridx = 0;
+		gbc_scrollPane.gridy = 0;
+		panel.add(scrollPane, gbc_scrollPane);
 		scrollPane.setViewportView(sensorTable);
 		sensorTable.setRowSelectionAllowed(true);
 		sensorTable.setAutoscrolls(true);
 		sensorTable.setCellSelectionEnabled(true);
-		
+		GridBagConstraints gbc_lblSensorCount = new GridBagConstraints();
+		gbc_lblSensorCount.insets = new Insets(0, 0, 0, 5);
+		gbc_lblSensorCount.gridx = 0;
+		gbc_lblSensorCount.gridy = 1;
+		panel.add(lblSensorCount, gbc_lblSensorCount);
+
+		GridBagConstraints gbc_lblSensorCountval = new GridBagConstraints();
+		gbc_lblSensorCountval.anchor = GridBagConstraints.WEST;
+		gbc_lblSensorCountval.insets = new Insets(0, 0, 0, 5);
+		gbc_lblSensorCountval.gridx = 1;
+		gbc_lblSensorCountval.gridy = 1;
+		panel.add(lblSensorCountval, gbc_lblSensorCountval);
+
+		GridBagConstraints gbc_lblNewLabel_1 = new GridBagConstraints();
+		gbc_lblNewLabel_1.anchor = GridBagConstraints.EAST;
+		gbc_lblNewLabel_1.insets = new Insets(0, 0, 0, 5);
+		gbc_lblNewLabel_1.gridx = 2;
+		gbc_lblNewLabel_1.gridy = 1;
+		panel.add(lblNewLabel_1, gbc_lblNewLabel_1);
+
+		GridBagConstraints gbc_lblMonitorCountVal = new GridBagConstraints();
+		gbc_lblMonitorCountVal.anchor = GridBagConstraints.WEST;
+		gbc_lblMonitorCountVal.insets = new Insets(0, 0, 0, 5);
+		gbc_lblMonitorCountVal.gridx = 3;
+		gbc_lblMonitorCountVal.gridy = 1;
+		panel.add(lblMonitorCountVal, gbc_lblMonitorCountVal);
+
+		GridBagConstraints gbc_panel_1 = new GridBagConstraints();
+		gbc_panel_1.fill = GridBagConstraints.VERTICAL;
+		gbc_panel_1.gridwidth = 3;
+		gbc_panel_1.insets = new Insets(0, 0, 5, 5);
+		gbc_panel_1.gridx = 0;
+		gbc_panel_1.gridy = 2;
+		panel_1.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "[info]", TitledBorder.LEADING,
+				TitledBorder.TOP, null, new Color(0, 0, 0)));
+		frame.getContentPane().add(panel_1, gbc_panel_1);
+		GridBagLayout gbl_panel_1 = new GridBagLayout();
+		gbl_panel_1.columnWidths = new int[] { 634, 0 };
+		gbl_panel_1.rowHeights = new int[] { 155, 0 };
+		gbl_panel_1.columnWeights = new double[] { 0.0, Double.MIN_VALUE };
+		gbl_panel_1.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
+		panel_1.setLayout(gbl_panel_1);
 		GridBagConstraints gbc_scrollPane_1 = new GridBagConstraints();
-		gbc_scrollPane_1.gridwidth = 2;
-		gbc_scrollPane_1.insets = new Insets(0, 0, 5, 5);
 		gbc_scrollPane_1.fill = GridBagConstraints.BOTH;
-		gbc_scrollPane_1.gridx = 2;
-		gbc_scrollPane_1.gridy = 3;
-		frame.getContentPane().add(scrollPane_1, gbc_scrollPane_1);
+		gbc_scrollPane_1.gridx = 0;
+		gbc_scrollPane_1.gridy = 0;
+		panel_1.add(scrollPane_1, gbc_scrollPane_1);
 		scrollPane_1.setViewportView(messageArea);
 	}
 
@@ -100,52 +174,62 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 	}
 
 	@Override
-	public void updateData() throws java.rmi.RemoteException {
+	public void update() throws java.rmi.RemoteException {
 
-//		Data = server.getAllSensorData();
-		
-		((DefaultTableModel) sensorTable.getModel()).addRow(new Object[] { "one", "two" , "three" , "four",
-				"five", "six", "seven" });
-		
-		
-//		System.out.println(Data.size());
+		// Data = server.getAllSensorData();
 
-//		for (int i = 0; i < Data.size(); i++) {
-//
-//			if (Data.get(i).contains(">>")) {
-//				eachData = Data.get(i).split(">>");
-//				System.out.println(Data.get(i));
-//				model.addRow(new Object[] { eachData[0], eachData[1] + "C", eachData[2] + "psi", eachData[3] + "mm",
-//						eachData[4] + "%", eachData[5], eachData[6] });
-//
-//				// check exceeded values and notify
-//				if (Double.parseDouble(eachData[3]) >= 20) {
-//
-//					messageArea.append("Rainfall value exceeded:" + eachData[3] + "mm, may be rain falling in "
-//							+ eachData[0] + "\n");
-//					messageArea.append("------------------------------------------------\n");
-//				}
-//				if (Double.parseDouble(eachData[1]) > 35) {
-//
-//					messageArea.append("Temperature level exceeded 35C :" + eachData[1] + "C in " + eachData[0] + "\n");
-//					messageArea.append("------------------------------------------------\n");
-//
-//				} else if (Double.parseDouble(eachData[1]) < 20) {
-//
-//					messageArea.append("Temperature level is Low :" + eachData[1] + "C in " + eachData[0] + "\n");
-//					messageArea.append("------------------------------------------------\n");
-//				}
-//			}
+		((DefaultTableModel) sensorTable.getModel())
+				.addRow(new Object[] { "one", "two", "three", "four", "five", "six", "seven" });
 
-//		}
+		// System.out.println(Data.size());
+
+		// for (int i = 0; i < Data.size(); i++) {
+		//
+		// if (Data.get(i).contains(">>")) {
+		// eachData = Data.get(i).split(">>");
+		// System.out.println(Data.get(i));
+		// model.addRow(new Object[] { eachData[0], eachData[1] + "C", eachData[2] +
+		// "psi", eachData[3] + "mm",
+		// eachData[4] + "%", eachData[5], eachData[6] });
+		//
+		// // check exceeded values and notify
+		// if (Double.parseDouble(eachData[3]) >= 20) {
+		//
+		// messageArea.append("Rainfall value exceeded:" + eachData[3] + "mm, may be
+		// rain falling in "
+		// + eachData[0] + "\n");
+		// messageArea.append("------------------------------------------------\n");
+		// }
+		// if (Double.parseDouble(eachData[1]) > 35) {
+		//
+		// messageArea.append("Temperature level exceeded 35C :" + eachData[1] + "C in "
+		// + eachData[0] + "\n");
+		// messageArea.append("------------------------------------------------\n");
+		//
+		// } else if (Double.parseDouble(eachData[1]) < 20) {
+		//
+		// messageArea.append("Temperature level is Low :" + eachData[1] + "C in " +
+		// eachData[0] + "\n");
+		// messageArea.append("------------------------------------------------\n");
+		// }
+		// }
+
+		// }
 		messageArea.append("Data Updated\n");
 
 	}
 
-
 	@Override
 	public void showWarningMessage(String message) throws RemoteException {
-		// TODO Auto-generated method stub
+
+		messageArea.append("[WARNING] : " + message);
+
+	}
+
+	@Override
+	public void showMessage(String message) throws RemoteException {
+
+		messageArea.append("[server] : " + message);
 
 	}
 
@@ -174,18 +258,21 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 			monitor = new Monitor();
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			frame.setVisible(true);
-//			String registration = "//localhost/TemperatureServer";
-//			Remote remoteService = Naming.lookup(registration);
-//			server = (IServer) remoteService;
-//			monitorUID = server.addObserver(monitor);
+			monitor.update();
+			String registration = "//localhost/SensorServer";
+			Remote remoteService = Naming.lookup(registration);
+			server = (IServer) remoteService;
+			monitorUID = server.addObserver(monitor);
+			lblMonitorIdValue.setText(monitorUID);
+
 			System.out.println("monitor initialized...");
-//			int num = server.getMonitorCount();
-//			jSC.setText("Number of Monitors : " + num);
+			// int num = server.getMonitorCount();
+			// jSC.setText("Number of Monitors : " + num);
 			monitor.run();
 
-		} catch (RemoteException ex) {
+		} catch (RemoteException | MalformedURLException ex) {
 			System.out.println(ex);
-		} 
+		}
 
 	}
 

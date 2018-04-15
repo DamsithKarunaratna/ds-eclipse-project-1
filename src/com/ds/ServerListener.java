@@ -9,9 +9,11 @@ public interface ServerListener extends Remote {
 
 	public void closeNotify() throws java.rmi.RemoteException;
 
-	public void updateData() throws java.rmi.RemoteException;
+	public void update() throws java.rmi.RemoteException;
 
 	public void showWarningMessage(String message) throws java.rmi.RemoteException;
+	
+	public void showMessage(String message) throws java.rmi.RemoteException;
 
 	public void specificSensorResponse(String sensorResponse[]) throws java.rmi.RemoteException;
 

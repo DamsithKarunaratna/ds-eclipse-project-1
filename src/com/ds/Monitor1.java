@@ -28,7 +28,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class Monitor1 extends UnicastRemoteObject implements ServerListener, Runnable {
 
-	private static ArrayList<String> Data = new ArrayList<String>();
+	private static ArrayList<String> allSensorData = new ArrayList<String>();
 	private int count = 0;
 	private String eachData[];
 	private static String monitorUID;
@@ -170,18 +170,18 @@ public class Monitor1 extends UnicastRemoteObject implements ServerListener, Run
 
 	// Update all sensors data to table
 	@Override
-	public void updateData() throws java.rmi.RemoteException {
+	public void update() throws java.rmi.RemoteException {
 
-		Data = server.getAllSensorData();
+		allSensorData = server.getAllSensorData();
 		model.getDataVector().removeAllElements();
 		model.setRowCount(0);
-		System.out.println(Data.size());
+		System.out.println(allSensorData.size());
 
-		for (int i = 0; i < Data.size(); i++) {
+		for (int i = 0; i < allSensorData.size(); i++) {
 
-			if (Data.get(i).contains(">>")) {
-				eachData = Data.get(i).split(">>");
-				System.out.println(Data.get(i));
+			if (allSensorData.get(i).contains(">>")) {
+				eachData = allSensorData.get(i).split(">>");
+				System.out.println(allSensorData.get(i));
 				model.addRow(new Object[] { eachData[0], eachData[1] + "C", eachData[2] + "psi", eachData[3] + "mm",
 						eachData[4] + "%", eachData[5], eachData[6] });
 
