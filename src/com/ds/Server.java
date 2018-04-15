@@ -127,6 +127,8 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 			}
 		});
 		
+		quickUpdateThread.start();
+		
 	}
 
 	@Override

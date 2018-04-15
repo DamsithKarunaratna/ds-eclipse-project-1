@@ -24,6 +24,11 @@ import javax.swing.UIManager;
 import java.awt.Color;
 import java.awt.BorderLayout;
 import javax.swing.border.LineBorder;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
 
 public class Monitor extends UnicastRemoteObject implements Runnable, ServerListener {
 
@@ -35,6 +40,11 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 	private String sensorData[];
 	private static String monitorUID;
 	private static IServer server;
+
+	public static IServer getServer() {
+		return server;
+	}
+
 	private static Monitor monitor;
 
 	static String columnNames[] = new String[] { "sensorUID", "Temperature", "Smoke_Level", "Battery", "Humidity",
@@ -45,24 +55,36 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 	private static JLabel lblMonitorIdValue = new JLabel("-");
 	private final JPanel panel = new JPanel();
 	private final JPanel panel_1 = new JPanel();
-	private static JLabel lblSensorCount = new JLabel("Sensor Count : ");
+	private static JLabel lbls = new JLabel("Sensor Count : ");
 	private static JLabel lblSensorCountval = new JLabel(" - ");
 	private final JLabel lblNewLabel_1 = new JLabel("Connected Monitors : ");
 	private static JLabel lblMonitorCountVal = new JLabel(" - ");
 	private final JPanel infoPanel = new JPanel();
+	private final JLabel lblNewLabel = new JLabel("Sensor ID");
+	private final JLabel lblt = new JLabel("Temperature");
+	private final JLabel lblNewLabel_2 = new JLabel("Smoke");
+	private final JLabel lblB = new JLabel("Battery");
+	private final JLabel lblH = new JLabel("Humidity");
+	private final JButton btnGetRealtimeData = new JButton("Get Realtime Data");
+	private final JLabel lblSensorID = new JLabel("-");
+	private final JLabel lblTemperature = new JLabel("-");
+	private final JLabel lblSmoke = new JLabel("-");
+	private final JLabel lblBattery = new JLabel("-");
+	private final JLabel lblHumidity = new JLabel("-");
 
 	public Monitor() throws RemoteException {
 		frame.setSize(884, 500);
 		frame.setResizable(false);
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 183, 567, 0, 0 };
+		gridBagLayout.columnWidths = new int[] { 122, 122, 567, 0, 0 };
 		gridBagLayout.rowHeights = new int[] { 50, 193, 0, 0 };
-		gridBagLayout.columnWeights = new double[] { 1.0, 1.0, 1.0, Double.MIN_VALUE };
+		gridBagLayout.columnWeights = new double[] { 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
 		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, Double.MIN_VALUE };
 		frame.getContentPane().setLayout(gridBagLayout);
 
 		JLabel lblMonitorId = new JLabel("Monitor ID :");
 		GridBagConstraints gbc_lblMonitorId = new GridBagConstraints();
+		gbc_lblMonitorId.gridwidth = 2;
 		gbc_lblMonitorId.anchor = GridBagConstraints.EAST;
 		gbc_lblMonitorId.insets = new Insets(0, 0, 5, 5);
 		gbc_lblMonitorId.gridx = 0;
@@ -72,21 +94,21 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 		GridBagConstraints gbc_lblMonitorIdValue = new GridBagConstraints();
 		gbc_lblMonitorIdValue.anchor = GridBagConstraints.WEST;
 		gbc_lblMonitorIdValue.insets = new Insets(0, 0, 5, 5);
-		gbc_lblMonitorIdValue.gridx = 1;
+		gbc_lblMonitorIdValue.gridx = 2;
 		gbc_lblMonitorIdValue.gridy = 0;
 		frame.getContentPane().add(lblMonitorIdValue, gbc_lblMonitorIdValue);
 
 		JLabel monitorIdVal = new JLabel("");
 		GridBagConstraints gbc_monitorIdVal = new GridBagConstraints();
 		gbc_monitorIdVal.insets = new Insets(0, 0, 5, 0);
-		gbc_monitorIdVal.gridx = 2;
+		gbc_monitorIdVal.gridx = 3;
 		gbc_monitorIdVal.gridy = 0;
 		frame.getContentPane().add(monitorIdVal, gbc_monitorIdVal);
 
 		GridBagConstraints gbc_panel = new GridBagConstraints();
 		gbc_panel.anchor = GridBagConstraints.EAST;
 		gbc_panel.fill = GridBagConstraints.VERTICAL;
-		gbc_panel.gridwidth = 3;
+		gbc_panel.gridwidth = 4;
 		gbc_panel.insets = new Insets(0, 0, 5, 0);
 		gbc_panel.gridx = 0;
 		gbc_panel.gridy = 1;
@@ -112,11 +134,23 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 		sensorTable.setRowSelectionAllowed(true);
 		sensorTable.setAutoscrolls(true);
 		sensorTable.setCellSelectionEnabled(true);
-		GridBagConstraints gbc_lblSensorCount = new GridBagConstraints();
-		gbc_lblSensorCount.insets = new Insets(0, 0, 0, 5);
-		gbc_lblSensorCount.gridx = 0;
-		gbc_lblSensorCount.gridy = 1;
-		panel.add(lblSensorCount, gbc_lblSensorCount);
+		sensorTable.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				System.out.println("table select");
+				String sensorIDentifier = sensorTable.getValueAt(sensorTable.getSelectedRow(), 0).toString();
+
+				System.out.println(sensorIDentifier + "selected");
+				lblSensorID.setText(sensorIDentifier);
+
+			}
+		});
+		GridBagConstraints gbc_lbls = new GridBagConstraints();
+		gbc_lbls.insets = new Insets(0, 0, 0, 5);
+		gbc_lbls.gridx = 0;
+		gbc_lbls.gridy = 1;
+		panel.add(lbls, gbc_lbls);
 
 		GridBagConstraints gbc_lblSensorCountval = new GridBagConstraints();
 		gbc_lblSensorCountval.anchor = GridBagConstraints.WEST;
@@ -138,36 +172,121 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 		gbc_lblMonitorCountVal.gridx = 3;
 		gbc_lblMonitorCountVal.gridy = 1;
 		panel.add(lblMonitorCountVal, gbc_lblMonitorCountVal);
-		
+
 		GridBagConstraints gbc_infoPanel = new GridBagConstraints();
-		gbc_infoPanel.insets = new Insets(0, 0, 0, 5);
+		gbc_infoPanel.gridwidth = 2;
+		gbc_infoPanel.anchor = GridBagConstraints.EAST;
+		gbc_infoPanel.insets = new Insets(0, 10, 10, 5);
 		gbc_infoPanel.fill = GridBagConstraints.BOTH;
 		gbc_infoPanel.gridx = 0;
 		gbc_infoPanel.gridy = 2;
-		infoPanel.setBorder(new TitledBorder(null, "[selected sensor]", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		infoPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "[selected sensor]",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		frame.getContentPane().add(infoPanel, gbc_infoPanel);
-		infoPanel.setLayout(new BorderLayout(0, 0));
+		GridBagLayout gbl_infoPanel = new GridBagLayout();
+		gbl_infoPanel.columnWidths = new int[] { 0, 60, 0 };
+		gbl_infoPanel.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 20, 0, 0 };
+		gbl_infoPanel.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
+		gbl_infoPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		infoPanel.setLayout(gbl_infoPanel);
+
+		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
+		gbc_lblNewLabel.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNewLabel.gridx = 0;
+		gbc_lblNewLabel.gridy = 1;
+		infoPanel.add(lblNewLabel, gbc_lblNewLabel);
+
+		GridBagConstraints gbc_lblSensorID = new GridBagConstraints();
+		gbc_lblSensorID.insets = new Insets(0, 0, 5, 0);
+		gbc_lblSensorID.gridx = 1;
+		gbc_lblSensorID.gridy = 1;
+		infoPanel.add(lblSensorID, gbc_lblSensorID);
+
+		GridBagConstraints gbc_lblt = new GridBagConstraints();
+		gbc_lblt.insets = new Insets(0, 0, 5, 5);
+		gbc_lblt.gridx = 0;
+		gbc_lblt.gridy = 2;
+		infoPanel.add(lblt, gbc_lblt);
+
+		GridBagConstraints gbc_lblTemperature = new GridBagConstraints();
+		gbc_lblTemperature.insets = new Insets(0, 0, 5, 0);
+		gbc_lblTemperature.gridx = 1;
+		gbc_lblTemperature.gridy = 2;
+		infoPanel.add(lblTemperature, gbc_lblTemperature);
+
+		GridBagConstraints gbc_lblNewLabel_2 = new GridBagConstraints();
+		gbc_lblNewLabel_2.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNewLabel_2.gridx = 0;
+		gbc_lblNewLabel_2.gridy = 3;
+		infoPanel.add(lblNewLabel_2, gbc_lblNewLabel_2);
+
+		GridBagConstraints gbc_lblSmoke = new GridBagConstraints();
+		gbc_lblSmoke.insets = new Insets(0, 0, 5, 0);
+		gbc_lblSmoke.gridx = 1;
+		gbc_lblSmoke.gridy = 3;
+		infoPanel.add(lblSmoke, gbc_lblSmoke);
+
+		GridBagConstraints gbc_lblB = new GridBagConstraints();
+		gbc_lblB.insets = new Insets(0, 0, 5, 5);
+		gbc_lblB.gridx = 0;
+		gbc_lblB.gridy = 4;
+		infoPanel.add(lblB, gbc_lblB);
+
+		GridBagConstraints gbc_lblBattery = new GridBagConstraints();
+		gbc_lblBattery.insets = new Insets(0, 0, 5, 0);
+		gbc_lblBattery.gridx = 1;
+		gbc_lblBattery.gridy = 4;
+		infoPanel.add(lblBattery, gbc_lblBattery);
+
+		GridBagConstraints gbc_lblH = new GridBagConstraints();
+		gbc_lblH.insets = new Insets(0, 0, 5, 5);
+		gbc_lblH.gridx = 0;
+		gbc_lblH.gridy = 5;
+		infoPanel.add(lblH, gbc_lblH);
+
+		GridBagConstraints gbc_lblHumidity = new GridBagConstraints();
+		gbc_lblHumidity.insets = new Insets(0, 0, 5, 0);
+		gbc_lblHumidity.gridx = 1;
+		gbc_lblHumidity.gridy = 5;
+		infoPanel.add(lblHumidity, gbc_lblHumidity);
+
+		GridBagConstraints gbc_btnGetRealtimeData = new GridBagConstraints();
+		gbc_btnGetRealtimeData.gridwidth = 2;
+		gbc_btnGetRealtimeData.insets = new Insets(0, 0, 5, 5);
+		gbc_btnGetRealtimeData.gridx = 0;
+		gbc_btnGetRealtimeData.gridy = 6;
+		btnGetRealtimeData.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					getServer().getSensorData(lblSensorID.getText(), monitorUID);
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		infoPanel.add(btnGetRealtimeData, gbc_btnGetRealtimeData);
 
 		GridBagConstraints gbc_panel_1 = new GridBagConstraints();
 		gbc_panel_1.anchor = GridBagConstraints.EAST;
-		gbc_panel_1.fill = GridBagConstraints.VERTICAL;
+		gbc_panel_1.fill = GridBagConstraints.BOTH;
 		gbc_panel_1.gridwidth = 2;
-		gbc_panel_1.gridx = 1;
+		gbc_panel_1.gridx = 2;
 		gbc_panel_1.gridy = 2;
 		panel_1.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "[info]", TitledBorder.LEADING,
 				TitledBorder.TOP, null, new Color(0, 0, 0)));
 		frame.getContentPane().add(panel_1, gbc_panel_1);
 		GridBagLayout gbl_panel_1 = new GridBagLayout();
-		gbl_panel_1.columnWidths = new int[]{634, 0};
-		gbl_panel_1.rowHeights = new int[]{155, 0};
-		gbl_panel_1.columnWeights = new double[]{0.0, Double.MIN_VALUE};
-		gbl_panel_1.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+		gbl_panel_1.columnWidths = new int[] { 634, 0 };
+		gbl_panel_1.rowHeights = new int[] { 155, 0 };
+		gbl_panel_1.columnWeights = new double[] { 0.0, Double.MIN_VALUE };
+		gbl_panel_1.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
 		panel_1.setLayout(gbl_panel_1);
 		GridBagConstraints gbc_scrollPane_1 = new GridBagConstraints();
 		gbc_scrollPane_1.fill = GridBagConstraints.BOTH;
 		gbc_scrollPane_1.gridx = 0;
 		gbc_scrollPane_1.gridy = 0;
 		panel_1.add(scrollPane_1, gbc_scrollPane_1);
+		messageArea.setEditable(false);
 		scrollPane_1.setViewportView(messageArea);
 	}
 
