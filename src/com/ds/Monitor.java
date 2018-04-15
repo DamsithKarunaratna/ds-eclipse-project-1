@@ -27,16 +27,14 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 
 	public static JFrame frame = new JFrame("Monitor");
 	private static JTable sensorTable;
-	private static ArrayList<String> Data = new ArrayList<String>();
+	private static ArrayList<String> allSensorData = new ArrayList<String>();
 	private static JTextArea messageArea = new JTextArea();
 	private int count = 0;
-	private String eachData[];
+	private String sensorData[];
 	private static String monitorUID;
 	private static IServer server;
 	private static Monitor monitor;
 
-	// private static DefaultTableModel model = (DefaultTableModel)
-	// sensorTable.getModel();
 	static String columnNames[] = new String[] { "sensorUID", "Temperature", "Smoke_Level", "Battery", "Humidity",
 			"Last Update", "Status" };
 	private static DefaultTableModel model = new DefaultTableModel(columnNames, 0);
@@ -51,7 +49,7 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 	private static JLabel lblMonitorCountVal = new JLabel(" - ");
 
 	public Monitor() throws RemoteException {
-		frame.setSize(700, 500);
+		frame.setSize(800, 500);
 		frame.setResizable(false);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 106, 567, 0, 0 };
@@ -176,45 +174,23 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 	@Override
 	public void update() throws java.rmi.RemoteException {
 
-		// Data = server.getAllSensorData();
+		allSensorData = server.getAllSensorData();
+		((DefaultTableModel) sensorTable.getModel()).getDataVector().removeAllElements();
+		((DefaultTableModel) sensorTable.getModel()).setRowCount(0);
 
-		((DefaultTableModel) sensorTable.getModel())
-				.addRow(new Object[] { "one", "two", "three", "four", "five", "six", "seven" });
+		System.out.println(allSensorData.size());
 
-		// System.out.println(Data.size());
+		for (int i = 0; i < allSensorData.size(); i++) {
 
-		// for (int i = 0; i < Data.size(); i++) {
-		//
-		// if (Data.get(i).contains(">>")) {
-		// eachData = Data.get(i).split(">>");
-		// System.out.println(Data.get(i));
-		// model.addRow(new Object[] { eachData[0], eachData[1] + "C", eachData[2] +
-		// "psi", eachData[3] + "mm",
-		// eachData[4] + "%", eachData[5], eachData[6] });
-		//
-		// // check exceeded values and notify
-		// if (Double.parseDouble(eachData[3]) >= 20) {
-		//
-		// messageArea.append("Rainfall value exceeded:" + eachData[3] + "mm, may be
-		// rain falling in "
-		// + eachData[0] + "\n");
-		// messageArea.append("------------------------------------------------\n");
-		// }
-		// if (Double.parseDouble(eachData[1]) > 35) {
-		//
-		// messageArea.append("Temperature level exceeded 35C :" + eachData[1] + "C in "
-		// + eachData[0] + "\n");
-		// messageArea.append("------------------------------------------------\n");
-		//
-		// } else if (Double.parseDouble(eachData[1]) < 20) {
-		//
-		// messageArea.append("Temperature level is Low :" + eachData[1] + "C in " +
-		// eachData[0] + "\n");
-		// messageArea.append("------------------------------------------------\n");
-		// }
-		// }
+			if (allSensorData.get(i).contains(">>")) {
 
-		// }
+				sensorData = allSensorData.get(i).split(">>");
+				((DefaultTableModel) sensorTable.getModel()).addRow(new Object[] { sensorData[0], sensorData[1],
+						sensorData[2], sensorData[3], sensorData[4], sensorData[5], sensorData[6] });
+
+			}
+
+		}
 		messageArea.append("Data Updated\n");
 
 	}
@@ -229,7 +205,7 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 	@Override
 	public void showMessage(String message) throws RemoteException {
 
-		messageArea.append("[server] : " + message);
+		messageArea.append("[SERVERMESSAGE] : " + message);
 
 	}
 
@@ -241,14 +217,22 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 
 	@Override
 	public void noResponse(String sensorUID) throws RemoteException {
-		// TODO Auto-generated method stub
+
+		messageArea.append("[NORESPONSE] : sensor - " + sensorUID + " has not responded");
 
 	}
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
-		System.out.println("Monitor running");
+
+		try {
+			lblMonitorCountVal.setText(Integer.toString(server.getMonitorCount()));
+			lblSensorCountval.setText(Integer.toString(server.getSensorCount()));
+			System.out.println("Monitor running");
+		} catch (RemoteException e) {
+
+			e.printStackTrace();
+		}
 
 	}
 
@@ -266,8 +250,6 @@ public class Monitor extends UnicastRemoteObject implements Runnable, ServerList
 			lblMonitorIdValue.setText(monitorUID);
 
 			System.out.println("monitor initialized...");
-			// int num = server.getMonitorCount();
-			// jSC.setText("Number of Monitors : " + num);
 			monitor.run();
 
 		} catch (RemoteException | MalformedURLException ex) {

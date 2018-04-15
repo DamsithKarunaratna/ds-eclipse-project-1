@@ -51,14 +51,14 @@ public class Server extends UnicastRemoteObject implements Runnable, IServer {
 	// getter for number of monitors connected to the server
 	@Override
 	public int getMonitorCount() throws java.rmi.RemoteException {
-		System.out.println("Monitor count requested" + monitors.size());
+		System.out.println("Monitor count requested - " + monitors.size());
 		return monitors.size();
 	}
 
 	// getter for number of sensors connected to the server
 	@Override
 	public int getSensorCount() throws RemoteException {
-		System.out.println("sensor count requested" + sensors.size());
+		System.out.println("sensor count requested - " + sensors.size());
 		return sensors.size();
 	}
 
